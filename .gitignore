@@ -1,0 +1,2 @@
+# Rendered output — never commit actual config files
+*.local.json

@@ -5,17 +5,19 @@ to reproduce the setup on any machine.
 
 ## What this manages
 
-Currently: Claude Code hook configurations.
-Intended to grow: `.gitconfig`, `.bashrc`, SSH config templates, and other
-personal tool configs as they are added.
+- `.gitconfig` — user identity, default branch, pull/rebase, editor
+- `~/.claude/settings.json` — global Claude Code settings and hooks
+- `~/git/homelab-server-architecture/.claude/settings.local.json` — project-local Claude Code hooks
 
 ## Structure
 
 ```
 dotfiles/
+├── bootstrap.sh                        # installs apt packages, ansible, claude code
 ├── install.sh                          # renders templates and writes config files
 ├── validate.sh                         # checks template integrity before install
 └── templates/
+    ├── gitconfig                       # ~/.gitconfig
     ├── claude-global-settings.json     # ~/.claude/settings.json
     └── homelab-settings.local.json     # ~/git/homelab-server-architecture/.claude/settings.local.json
 ```
