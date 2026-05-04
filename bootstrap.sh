@@ -11,6 +11,7 @@ sudo apt-get install -y git curl python3 python3-venv pipx tmux
 
 # Make pipx-installed binaries available in PATH
 pipx ensurepath
+export PATH="$HOME/.local/bin:$PATH"
 
 # Ansible
 echo "Installing Ansible via pipx..."
