@@ -1,0 +1,16 @@
+{
+  "autoMemoryEnabled": false,
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "printf '{\"hookSpecificOutput\": {\"hookEventName\": \"UserPromptSubmit\", \"additionalContext\": \"15-Minuten-Regel: Pruef ob diese Nachricht eine Lernfrage ist ohne erkennbaren Eigenversuch. Falls ja: frag zuerst was der User bisher probiert hat, bevor du antwortest. Ausnahme: Wenn der User explizit auf einer direkten Antwort besteht oder sagt er weiss was er tut, antworte direkt.\"}}'",
+            "statusMessage": "Lernmodus aktiv"
+          }
+        ]
+      }
+    ]
+  }
+}
