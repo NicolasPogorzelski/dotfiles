@@ -23,12 +23,23 @@ else
   echo "  OK: no hardcoded paths"
 fi
 
-# Check 3: install.sh is executable
-echo "Check 3: install.sh is executable"
-if [ -x install.sh ]; then
-  echo "  OK: install.sh"
+# Check 3: scripts are executable
+echo "Check 3: scripts are executable"
+for script in install.sh bootstrap.sh validate.sh; do
+  if [ -x "$script" ]; then
+    echo "  OK: $script"
+  else
+    echo "  FAIL: $script is not executable (run: chmod +x $script)"
+    ERRORS=$((ERRORS+1))
+  fi
+done
+
+# Check 4: gitconfig template exists
+echo "Check 4: gitconfig template exists"
+if [ -f templates/gitconfig ]; then
+  echo "  OK: templates/gitconfig"
 else
-  echo "  FAIL: install.sh is not executable (run: chmod +x install.sh)"
+  echo "  FAIL: templates/gitconfig missing"
   ERRORS=$((ERRORS+1))
 fi
 
