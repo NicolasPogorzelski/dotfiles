@@ -34,7 +34,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "printf '{\"hookSpecificOutput\": {\"hookEventName\": \"Stop\", \"additionalContext\": \"MANDATORY: Per CLAUDE.md, before ending this session check what was learned and update ~/git/devops-til/. New concepts go in new .md files (linux/, ansible/, proxmox/ etc.), update README.md index, then: git -C ~/git/devops-til push origin main\"}}'",
+            "command": "printf '{\"stopReason\": \"REMINDER: Update devops-til before ending session — new concepts to linux/, ansible/, proxmox/ etc., update README.md, then: git -C ~/git/devops-til push origin main\"}'",
             "statusMessage": "devops-til reminder active"
           }
         ]
