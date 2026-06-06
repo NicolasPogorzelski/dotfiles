@@ -16,6 +16,9 @@ dotfiles/
 ├── bootstrap.sh                        # installs apt packages, ansible, claude code
 ├── install.sh                          # renders templates and writes config files
 ├── validate.sh                         # checks template integrity before install
+├── scripts/
+│   └── workstation/
+│       └── sync-gdm-wallpaper.sh       # sync latest Bing wallpaper to the GDM login screen
 └── templates/
     ├── gitconfig                       # ~/.gitconfig
     ├── claude-global-settings.json     # ~/.claude/settings.json
@@ -31,6 +34,15 @@ cd ~/git/dotfiles
 ./install.sh --dry-run # preview what will be written
 ./install.sh           # apply
 ```
+
+## Workstation scripts
+
+Standalone helpers — not run by `install.sh`:
+
+- `scripts/workstation/sync-gdm-wallpaper.sh` — copies the latest image downloaded by
+  the Bing Wallpaper GNOME extension to the GDM login screen background via dconf
+  (CachyOS/GNOME). Set `WALLPAPER_USER_HOME` at the top first, then run as root:
+  `sudo ./scripts/workstation/sync-gdm-wallpaper.sh`.
 
 ## Prerequisites
 
