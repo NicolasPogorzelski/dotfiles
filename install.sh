@@ -7,7 +7,7 @@ DRY_RUN=false
 
 if [ "${1:-}" = "--dry-run" ]; then
   DRY_RUN=true
-  echo "[dry-run mode — no files will be written]"
+  echo "[dry-run mode - no files will be written]"
   echo ""
 fi
 

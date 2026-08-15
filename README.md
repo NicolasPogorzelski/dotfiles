@@ -5,9 +5,9 @@ to reproduce the setup on any machine.
 
 ## What this manages
 
-- `.gitconfig` — user identity, default branch, pull/rebase, editor
-- `~/.claude/settings.json` — global Claude Code settings and hooks
-- `~/git/homelab-server-architecture/.claude/settings.local.json` — project-local Claude Code hooks
+- `.gitconfig` - user identity, default branch, pull/rebase, editor
+- `~/.claude/settings.json` - global Claude Code settings and hooks
+- `~/git/homelab-server-architecture/.claude/settings.local.json` - project-local Claude Code hooks
 
 ## Structure
 
@@ -37,9 +37,9 @@ cd ~/git/dotfiles
 
 ## Workstation scripts
 
-Standalone helpers — not run by `install.sh`:
+Standalone helpers - not run by `install.sh`:
 
-- `scripts/workstation/sync-gdm-wallpaper.sh` — copies the latest image downloaded by
+- `scripts/workstation/sync-gdm-wallpaper.sh` - copies the latest image downloaded by
   the Bing Wallpaper GNOME extension to the GDM login screen background via dconf
   (CachyOS/GNOME). Set `WALLPAPER_USER_HOME` at the top first, then run as root:
   `sudo ./scripts/workstation/sync-gdm-wallpaper.sh`.
