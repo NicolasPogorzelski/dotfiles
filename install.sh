@@ -2,8 +2,13 @@
 set -e
 
 DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
-REPO_PATH="$HOME/git/homelab-server-architecture"
 DRY_RUN=false
+
+# The physical path, symlinks resolved. On rpm-ostree systems /home is a
+# symlink to /var/home, and a hook path rendered from $HOME would be the
+# logical form; the guard it points at compares repository roots that git
+# resolves physically, so the two must agree. readlink -f settles it once.
+REPO_PATH="$(readlink -f "$HOME/git/homelab-server-architecture")"
 
 if [ "${1:-}" = "--dry-run" ]; then
   DRY_RUN=true
@@ -11,14 +16,42 @@ if [ "${1:-}" = "--dry-run" ]; then
   echo ""
 fi
 
+render() {
+  sed "s|<repo-path>|$REPO_PATH|g" "$1"
+}
+
+# What the live file has and the template lacks is either a change to port
+# back or a reason not to install. The project file's permissions.allow list
+# is left out of the comparison: Claude Code appends to it per machine, and
+# it is not template material.
+show_diff() {
+  local template="$1"
+  local destination="$2"
+  if [ ! -f "$destination" ]; then
+    echo "  new file (nothing to compare)"
+    return
+  fi
+  case "$destination" in
+    *.json)
+      diff <(render "$template" | jq -S 'del(.permissions.allow)') \
+           <(jq -S 'del(.permissions.allow)' "$destination") \
+        && echo "  identical (allow list excluded)"
+      ;;
+    *)
+      diff "$template" "$destination" && echo "  identical"
+      ;;
+  esac
+}
+
 write_file() {
   local template="$1"
   local destination="$2"
   if $DRY_RUN; then
     echo "[dry-run] would write: $destination"
+    show_diff "$template" "$destination" || true
   else
     mkdir -p "$(dirname "$destination")"
-    sed "s|<repo-path>|$REPO_PATH|g" "$template" > "$destination"
+    render "$template" > "$destination"
   fi
 }
 

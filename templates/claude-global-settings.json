@@ -1,16 +1,57 @@
 {
+  "agentPushNotifEnabled": true,
+  "autoCompactEnabled": true,
   "autoMemoryEnabled": false,
   "hooks": {
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "printf '{\"hookSpecificOutput\": {\"hookEventName\": \"PostToolUse\", \"additionalContext\": \"ERKLAER-REGEL (PFLICHT): Erklaere jetzt was du gerade ausgefuehrt oder geschrieben hast. Fuer Bash-Befehle: JEDEN Flag und Parameter (was er tut, warum dieser Wert, Alternativen). Fuer Code-Zeilen (Python, Bash-Skripte, YAML, Config): JEDE Zeile (was sie tut, warum dieser Wert/Ausdruck). Keine Ausnahmen. Keine Copy-Paste-Antworten ohne Kontext.\"}}'",
+            "statusMessage": "Erklär-Regel aktiv",
+            "type": "command"
+          }
+        ],
+        "matcher": "Bash|Write|Edit"
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "python3 -c \"import json,sys; print(json.load(sys.stdin).get('tool_input',{}).get('command',''))\" | grep -qi \"co-authored-by\" && printf '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"deny\", \"permissionDecisionReason\": \"Co-Authored-By in commit verboten (CLAUDE.md). Entferne den Trailer.\"}}' || true",
+            "if": "Bash(git commit *)",
+            "statusMessage": "Commit-Policy wird geprüft",
+            "type": "command"
+          },
+          {
+            "command": "python3 -c \"import json,sys; print(json.load(sys.stdin).get('tool_input',{}).get('command',''))\" | grep -qE '(^|[^[:alnum:]_/.-])git([[:space:]]+[^[:space:];&|]+)*[[:space:]]+push([[:space:]]|$)' && printf '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"deny\", \"permissionDecisionReason\": \"git push ist gesperrt (CLAUDE.md). Push nur durch Nicolas selbst - frag ausdruecklich nach, statt zu pushen.\"}}' || true",
+            "statusMessage": "Push-Sperre wird geprüft",
+            "type": "command"
+          }
+        ],
+        "matcher": "Bash"
+      }
+    ],
     "UserPromptSubmit": [
       {
         "hooks": [
           {
-            "type": "command",
             "command": "printf '{\"hookSpecificOutput\": {\"hookEventName\": \"UserPromptSubmit\", \"additionalContext\": \"15-Minuten-Regel: Pruef ob diese Nachricht eine Lernfrage ist ohne erkennbaren Eigenversuch. Falls ja: frag zuerst was der User bisher probiert hat, bevor du antwortest. Ausnahme: Wenn der User explizit auf einer direkten Antwort besteht oder sagt er weiss was er tut, antworte direkt.\"}}'",
-            "statusMessage": "Lernmodus aktiv"
+            "statusMessage": "Lernmodus aktiv",
+            "type": "command"
           }
         ]
       }
     ]
-  }
+  },
+  "model": "opus",
+  "permissions": {
+    "deny": [
+      "Bash(git push:*)",
+      "Bash(git -C:* push:*)"
+    ]
+  },
+  "theme": "dark",
+  "tui": "fullscreen"
 }
