@@ -7,6 +7,8 @@ to reproduce the setup on any machine.
 
 - `.gitconfig` - user identity, default branch, pull/rebase, editor
 - `~/.claude/settings.json` - global Claude Code settings and hooks
+- `~/.claude/hooks/publish-guard.sh` - the global publish guard the settings call: no push, PR or
+  release by Claude; single exception `git -C ~/git/overthewire-bandit push`
 - `~/git/homelab-server-architecture/.claude/settings.local.json` - project-local Claude Code hooks
 
 ## Structure
@@ -22,6 +24,8 @@ dotfiles/
 └── templates/
     ├── gitconfig                       # ~/.gitconfig
     ├── claude-global-settings.json     # ~/.claude/settings.json
+    ├── claude-hooks/
+    │   └── publish-guard.sh            # ~/.claude/hooks/publish-guard.sh
     └── homelab-settings.local.json     # ~/git/homelab-server-architecture/.claude/settings.local.json
 ```
 

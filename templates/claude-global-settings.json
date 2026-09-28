@@ -3,6 +3,25 @@
   "autoCompactEnabled": true,
   "autoMemoryEnabled": false,
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "command": "python3 -c \"import json,sys; print(json.load(sys.stdin).get('tool_input',{}).get('command',''))\" | grep -qi \"co-authored-by\" && printf '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"deny\", \"permissionDecisionReason\": \"Co-Authored-By in commit verboten (CLAUDE.md). Entferne den Trailer.\"}}' || true",
+            "if": "Bash(git commit *)",
+            "statusMessage": "Commit-Policy wird geprüft",
+            "type": "command"
+          },
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/publish-guard.sh",
+            "timeout": 10,
+            "statusMessage": "Checking publish guard"
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "hooks": [
@@ -13,24 +32,6 @@
           }
         ],
         "matcher": "Bash|Write|Edit"
-      }
-    ],
-    "PreToolUse": [
-      {
-        "hooks": [
-          {
-            "command": "python3 -c \"import json,sys; print(json.load(sys.stdin).get('tool_input',{}).get('command',''))\" | grep -qi \"co-authored-by\" && printf '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"deny\", \"permissionDecisionReason\": \"Co-Authored-By in commit verboten (CLAUDE.md). Entferne den Trailer.\"}}' || true",
-            "if": "Bash(git commit *)",
-            "statusMessage": "Commit-Policy wird geprüft",
-            "type": "command"
-          },
-          {
-            "command": "python3 -c \"import json,sys; print(json.load(sys.stdin).get('tool_input',{}).get('command',''))\" | grep -qE '(^|[^[:alnum:]_/.-])git([[:space:]]+[^[:space:];&|]+)*[[:space:]]+push([[:space:]]|$)' && printf '{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"deny\", \"permissionDecisionReason\": \"git push ist gesperrt (CLAUDE.md). Push nur durch Nicolas selbst - frag ausdruecklich nach, statt zu pushen.\"}}' || true",
-            "statusMessage": "Push-Sperre wird geprüft",
-            "type": "command"
-          }
-        ],
-        "matcher": "Bash"
       }
     ],
     "UserPromptSubmit": [
@@ -48,10 +49,27 @@
   "model": "opus",
   "permissions": {
     "deny": [
-      "Bash(git push:*)",
-      "Bash(git -C:* push:*)"
+      "Bash(git push)",
+      "Bash(git push *)",
+      "Bash(gh pr create *)",
+      "Bash(gh pr edit *)",
+      "Bash(gh pr merge *)",
+      "Bash(gh pr comment *)",
+      "Bash(gh pr review *)",
+      "Bash(gh pr close *)",
+      "Bash(gh pr reopen *)",
+      "Bash(gh release *)"
+    ],
+    "ask": [
+      "Bash(git push)",
+      "Bash(git push *)",
+      "Bash(gh pr create *)",
+      "Bash(gh pr merge *)",
+      "Bash(gh repo sync *)",
+      "Bash(gh api *)"
     ]
   },
   "theme": "dark",
-  "tui": "fullscreen"
+  "tui": "fullscreen",
+  "includeCoAuthoredBy": false
 }

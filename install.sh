@@ -62,6 +62,7 @@ echo ""
 
 write_file "$DOTFILES_DIR/templates/gitconfig" "$HOME/.gitconfig"
 write_file "$DOTFILES_DIR/templates/claude-global-settings.json" "$HOME/.claude/settings.json"
+write_file "$DOTFILES_DIR/templates/claude-hooks/publish-guard.sh" "$HOME/.claude/hooks/publish-guard.sh"
 write_file "$DOTFILES_DIR/templates/homelab-settings.local.json" "$REPO_PATH/.claude/settings.local.json"
 
 if ! $DRY_RUN; then
