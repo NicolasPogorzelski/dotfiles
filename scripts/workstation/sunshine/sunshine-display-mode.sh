@@ -2,7 +2,10 @@
 # Display layouts for Sunshine streaming with portal capture.
 # Portal consent is bound to one monitor, so the dummy plug (HDMI-1) must exist
 # in every layout; only the desk monitor (DP-1) comes and goes.
-#   desk        -> DP-1 primary + HDMI-1 as a second (invisible) monitor
+#   desk        -> DP-1 primary + HDMI-1 as a second (invisible) monitor,
+#                  left of DP-1 and shifted down so the two only share a
+#                  221 px strip at the bottom-left edge of DP-1 (keeps the
+#                  pointer from wandering onto the dummy)
 #   stream      -> HDMI-1 only, primary (TV via Moonlight)
 #   stream-both -> HDMI-1 primary, DP-1 stays on (fallback if the portal
 #                  stream does not survive DP-1 being disabled)
@@ -23,8 +26,10 @@ dummy_stream=(--monitor HDMI-1 --mode 3840x2160@120.000 --color-mode bt2100 --sc
 
 case "${1:-}" in
     desk)
-        gdctl set --logical-monitor "${desk_mon[@]}" --primary \
-                  --logical-monitor "${dummy_mon[@]}" --right-of DP-1 ;;
+        # Absolute positions: relative placement (--left-of) can only align
+        # top edges, not reproduce the vertical offset.
+        gdctl set --logical-monitor "${desk_mon[@]}" --primary --x 3840 --y 0 \
+                  --logical-monitor "${dummy_mon[@]}" --x 0 --y 1219 ;;
     stream)
         gdctl set --logical-monitor "${dummy_stream[@]}" --primary ;;
     stream-both)

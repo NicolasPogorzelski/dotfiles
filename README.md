@@ -83,7 +83,8 @@ and measurements:
 - `scripts/workstation/sunshine/sunshine-display-mode.sh desk|stream|stream-both|kms-desk` -
   all display layouts in one place. Portal consent is bound to one monitor, so the dummy plug
   exists in every layout and only `DP-1` comes and goes:
-  - `desk` - `DP-1` primary, dummy at 60 Hz right of it (an invisible second monitor)
+  - `desk` - `DP-1` primary, dummy at 60 Hz left of it and shifted down (an invisible second
+    monitor; the two only touch along a 221 px strip, so the pointer rarely lands on it)
   - `stream` - dummy only, 4K **120 Hz** HDR (`bt2100`). Games stay capped at 60 FPS; a missed
     compositor refresh then costs 8.3 ms instead of 16.7 ms
   - `stream-both` - fallback that keeps `DP-1` on while streaming
