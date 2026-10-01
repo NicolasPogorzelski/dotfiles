@@ -1,0 +1,13 @@
+[Unit]
+Description=Keep MangoHud FPS limits in line with the current desk/stream mode
+# Goverlay rewrites per-game MangoHud.conf files with its own fps_limit when a
+# game is set up or patched; this re-applies the remembered mode within seconds.
+After=graphical-session.target
+
+[Service]
+ExecStart=%h/.local/bin/mangohud-fps-mode watch
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=graphical-session.target

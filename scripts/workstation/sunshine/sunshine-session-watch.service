@@ -1,0 +1,16 @@
+[Unit]
+Description=Close Sunshine sessions whose client disconnected without quitting
+# Runs alongside Sunshine: started with it, stopped and restarted with it.
+After=app-dev.lizardbyte.app.Sunshine.service
+PartOf=app-dev.lizardbyte.app.Sunshine.service
+# Created by hand with: systemd-creds encrypt --user --name=sunshine-api
+ConditionPathExists=%h/.config/sunshine-session-watch/api.cred
+
+[Service]
+ExecStart=%h/.local/bin/sunshine-session-watch watch
+LoadCredentialEncrypted=sunshine-api:%h/.config/sunshine-session-watch/api.cred
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=app-dev.lizardbyte.app.Sunshine.service

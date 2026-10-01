@@ -24,6 +24,9 @@ dotfiles/
 │       └── sunshine/
 │           ├── sunshine-display-mode.sh # display layouts: desk / stream (120 Hz dummy) / rollback
 │           ├── mangohud-fps-mode.sh    # MangoHud FPS limit: 60 while streaming, 72 at the desk
+│           ├── mangohud-fps-sync.service # user unit: re-apply that limit to configs goverlay rewrites
+│           ├── sunshine-session-watch.sh # close sessions whose client vanished without "Quit"
+│           ├── sunshine-session-watch.service # user unit for it, runs alongside Sunshine
 │           └── reset-desk-state.conf   # systemd drop-in: restore desk state on Sunshine start
 └── templates/
     ├── gitconfig                       # ~/.gitconfig
@@ -92,12 +95,27 @@ and measurements:
   `gdctl` is called with `LD_LIBRARY_PATH` removed: the Sunshine unit exports Homebrew's lib
   directory, which makes `/usr/bin/python3` load Homebrew's libpython and fail with
   `No module named 'gi'`.
-- `scripts/workstation/sunshine/mangohud-fps-mode.sh stream|desk` - sets `fps_limit` and
-  `fps_limit_method` in every goverlay per-game MangoHud config and in
+- `scripts/workstation/sunshine/mangohud-fps-mode.sh stream|desk|apply|watch` - sets
+  `fps_limit` and `fps_limit_method` in every goverlay per-game MangoHud config and in
   `~/.config/MangoHud/MangoHud.conf`: `stream` = 60 / `early` (even frame delivery),
   `desk` = 72 / `late` (below the 75 Hz VRR ceiling, lowest latency). MangoHud reloads its
   config on change, so a running game picks it up live. Games without MangoHud are not
   covered - cap them to 60 FPS in-game, or they run at 120 on the 120 Hz dummy.
+  `stream`/`desk` remember the mode in `~/.local/state/mangohud-fps-mode`; `apply`
+  re-applies it once, `watch` every 2 s and only writes files that drifted.
+- `scripts/workstation/sunshine/mangohud-fps-sync.service` - runs `mangohud-fps-mode watch`.
+  goverlay writes a fresh per-game `MangoHud.conf` with `fps_limit=0` (unlimited) whenever a
+  game is set up or patched; without this unit that game ran uncapped until the next
+  connect or disconnect.
+- `scripts/workstation/sunshine/sunshine-session-watch.sh watch|close` and its unit - Sunshine
+  runs `undo` only when the app is closed. A client that just disconnects (network drop,
+  Moonlight closed without "Quit app") leaves the session open for a resume, and the desk
+  stays in stream mode. The watcher follows Sunshine's journal; when the last client is gone
+  and nobody reconnects within 30 s it closes the app through the web API
+  (`POST /api/apps/close`), so Sunshine runs its own, tested `undo`. A later connect is a fresh
+  session with `do`. The web UI password is an encrypted systemd credential, reaches `curl`
+  over stdin rather than argv, and is only sent to the pinned public key of Sunshine's
+  certificate. `close` ends a stuck session by hand.
 - `scripts/workstation/sunshine/reset-desk-state.conf` - drop-in for the Sunshine user unit.
   On every start no client is connected, so it restores `desk` and the desk FPS limit. This
   covers sessions whose `undo` never ran (crash, reboot mid-stream). The `-` prefix keeps a
@@ -110,8 +128,27 @@ install -m 755 scripts/workstation/sunshine/sunshine-display-mode.sh ~/.local/bi
 install -m 755 scripts/workstation/sunshine/mangohud-fps-mode.sh ~/.local/bin/mangohud-fps-mode
 install -m 644 scripts/workstation/sunshine/reset-desk-state.conf \
   ~/.config/systemd/user/app-dev.lizardbyte.app.Sunshine.service.d/reset-desk-state.conf
+install -m 755 scripts/workstation/sunshine/sunshine-session-watch.sh ~/.local/bin/sunshine-session-watch
+install -m 644 scripts/workstation/sunshine/mangohud-fps-sync.service \
+  scripts/workstation/sunshine/sunshine-session-watch.service ~/.config/systemd/user/
 systemctl --user daemon-reload
+systemctl --user enable --now mangohud-fps-sync.service
+systemctl --user enable sunshine-session-watch.service
 ```
+
+The session watcher stays inactive until its credential exists (`ConditionPathExists=`).
+Store the Sunshine web UI password - typed at the prompt, so it never reaches the shell
+history - and start the watcher. `api_user` in the script must match the web UI user name.
+
+```bash
+install -d -m 700 ~/.config/sunshine-session-watch
+systemd-ask-password -n "Sunshine web UI password:" | systemd-creds encrypt --user --name=sunshine-api - ~/.config/sunshine-session-watch/api.cred
+systemctl --user restart sunshine-session-watch.service
+~/.local/bin/sunshine-session-watch close   # expect "app closed"; HTTP 401 = wrong password
+```
+
+After changing the password, encrypt it again and `restart` (not `start`) the watcher: the
+service reads the credential only when it starts.
 
 `~/.config/sunshine/sunshine.conf` (prep commands run in order on connect and in reverse on
 session end; they are executed without a shell, so `&&` chaining does not work):
