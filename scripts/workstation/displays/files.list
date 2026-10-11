@@ -1,0 +1,6 @@
+# Files of the Fenster-Heimholer GNOME extension: <path in this directory>|<path under $HOME>
+# Read by restore.sh (repo -> machine) and sync-from-live.sh (machine -> repo).
+# gschemas.compiled is not listed: restore.sh builds it from the .xml.
+window-heimholer/metadata.json|.local/share/gnome-shell/extensions/window-heimholer@nicolas/metadata.json
+window-heimholer/extension.js|.local/share/gnome-shell/extensions/window-heimholer@nicolas/extension.js
+window-heimholer/schemas/org.gnome.shell.extensions.window-heimholer.gschema.xml|.local/share/gnome-shell/extensions/window-heimholer@nicolas/schemas/org.gnome.shell.extensions.window-heimholer.gschema.xml

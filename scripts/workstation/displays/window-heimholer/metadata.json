@@ -1,0 +1,7 @@
+{
+  "uuid": "window-heimholer@nicolas",
+  "name": "Fenster-Heimholer",
+  "description": "Holt Fenster auf den aktuell primaeren Monitor: neue Fenster automatisch, nach jedem Monitorwechsel (Sunshine/Dummy) alle, per Hotkey (Standard Super+Shift+1) jederzeit alle. gamescope-Fenster (PartyDeck) bleiben unangetastet.",
+  "shell-version": ["50"],
+  "settings-schema": "org.gnome.shell.extensions.window-heimholer"
+}

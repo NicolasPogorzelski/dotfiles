@@ -1,0 +1,4 @@
+# GNOME custom shortcuts (Settings -> Keyboard -> Custom Shortcuts): <name>|<binding>|<command>
+# The name identifies the entry: restore.sh updates an entry with that name or adds one,
+# sync-from-live.sh rewrites binding and command from the live entry of that name.
+Display -> nur Ultrawide (Notfall)|<Super><Alt>d|/usr/bin/gdctl set --logical-monitor --monitor DP-1 --mode 3440x1440@75.050+vrr --primary

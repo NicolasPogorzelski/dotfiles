@@ -21,6 +21,12 @@ dotfiles/
 ├── scripts/
 │   └── workstation/
 │       ├── sync-gdm-wallpaper.sh       # sync latest Bing wallpaper to the GDM login screen
+│       ├── displays/
+│       │   ├── restore.sh              # Fenster-Heimholer extension + custom shortcuts (Super+Alt+D)
+│       │   ├── sync-from-live.sh       # copy the live files and shortcuts back in / --check for drift
+│       │   ├── files.list              # extension files under $HOME; read by both scripts above
+│       │   ├── keybindings.list        # custom shortcuts: name|binding|command
+│       │   └── window-heimholer/       # GNOME extension: windows -> primary monitor (in progress)
 │       ├── craft/
 │       │   ├── restore.sh              # install all Craft apps from GitHub + the weekly auto-updater
 │       │   ├── sync-from-live.sh       # copy the live updater back in, rewrite apps.list / --check for drift
@@ -123,6 +129,27 @@ run it now: `systemctl --user start craft-flatpak-update.service`.
 **Keep the backup current** after installing a new Craft app or editing the updater:
 `scripts/workstation/craft/sync-from-live.sh --check` lists what drifted, without `--check` it
 copies the files in and rewrites `apps.list`; review and commit.
+
+### Display helpers (Bazzite gaming PC)
+
+Switching between the desk layout and the Sunshine dummy (see below) leaves windows on the
+invisible HDMI-1 dummy. Two helpers deal with that:
+
+- **Fenster-Heimholer** (`window-heimholer@nicolas`) - **in progress: not tested live yet**
+  (needs a re-login first). A GNOME extension that moves app windows
+  to the current primary monitor: new windows on their first frame, all windows 1.5 s after a
+  monitor change, all windows on `Super+Shift+1`. Dialogs follow their parent, gamescope windows
+  are left to the PartyDeck tiler. Log: `journalctl --user -b -g window-heimholer`.
+- **`Super+Alt+D`**, a custom shortcut making the ultrawide (DP-1) the only display, for when the
+  picture is stuck on the dummy.
+
+**Restore:** `scripts/workstation/displays/restore.sh`, then log out and in once (GNOME on
+Wayland loads a new extension only at login). Shortcuts are matched by name, so running it again
+updates them instead of adding duplicates.
+
+**Keep the backup current** after editing the extension or the shortcut:
+`scripts/workstation/displays/sync-from-live.sh --check` lists what drifted, without `--check` it
+copies it in; review and commit.
 
 ### Sunshine game streaming (Bazzite gaming PC)
 

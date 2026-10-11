@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.window-heimholer" path="/org/gnome/shell/extensions/window-heimholer/">
+    <key name="move-all" type="as">
+      <default>['&lt;Super&gt;&lt;Shift&gt;1']</default>
+      <summary>Alle Fenster auf den primaeren Monitor holen</summary>
+    </key>
+    <key name="auto-new" type="b">
+      <default>true</default>
+      <summary>Neue Fenster automatisch auf den primaeren Monitor holen</summary>
+    </key>
+    <key name="auto-monitors-changed" type="b">
+      <default>true</default>
+      <summary>Nach Monitorwechsel alle Fenster auf den primaeren Monitor holen</summary>
+    </key>
+  </schema>
+</schemalist>
