@@ -1,0 +1,14 @@
+# storytold Craft apps (GitHub storytold/<name>, Flatpak ID ai.storyteller.<name>).
+# restore.sh installs every name here; sync-from-live.sh rewrites this list from
+# what is installed. New app: install its bundle once, then run sync-from-live.sh.
+cadcraft
+deckcraft
+designcraft
+effectcraft
+filmcraft
+gridcraft
+lightcraft
+pdfcraft
+photocraft
+vectorcraft
+wordcraft

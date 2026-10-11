@@ -21,6 +21,14 @@ dotfiles/
 ├── scripts/
 │   └── workstation/
 │       ├── sync-gdm-wallpaper.sh       # sync latest Bing wallpaper to the GDM login screen
+│       ├── craft/
+│       │   ├── restore.sh              # install all Craft apps from GitHub + the weekly auto-updater
+│       │   ├── sync-from-live.sh       # copy the live updater back in, rewrite apps.list / --check for drift
+│       │   ├── apps.list               # which storytold Craft apps are installed
+│       │   ├── files.list              # files under $HOME: which goes where; read by both scripts above
+│       │   ├── craft-flatpak-update.sh # the updater: GitHub release -> SHA256 check -> flatpak install --user
+│       │   ├── craft-flatpak-update.service # user unit running it once
+│       │   └── craft-flatpak-update.timer   # weekly, catches up after downtime
 │       └── sunshine/
 │           ├── restore.sh              # restore the whole setup on a fresh install (--system: sudo part)
 │           ├── sync-from-live.sh       # copy the live files back in / --check for drift
@@ -84,6 +92,37 @@ Standalone helpers - not run by `install.sh`:
   the Bing Wallpaper GNOME extension to the GDM login screen background via dconf
   (CachyOS/GNOME). Set `WALLPAPER_USER_HOME` at the top first, then run as root:
   `sudo ./scripts/workstation/sync-gdm-wallpaper.sh`.
+
+### storytold Craft apps (Bazzite gaming PC)
+
+The Craft apps (CadCraft, WordCraft, PhotoCraft, ...) ship only as Flatpak bundles on their
+GitHub releases (`storytold/<name>`), not on Flathub. A bundle has no update source, so
+`flatpak update` never touches them; a user timer does it instead.
+
+**Restore after losing the machine** (fresh Bazzite, nothing else needed):
+
+```bash
+scripts/workstation/craft/restore.sh
+```
+
+It puts the updater and its units in place, adds the Flathub user remote (the bundles take
+their `org.freedesktop.Platform` runtime from there), downloads every app in `apps.list` in its
+latest release, checks it against the release's `SHA256SUMS.txt`, installs it with
+`flatpak install --user` and enables the timer. Running it again is safe: installed apps are
+only updated. Not backed up: what the apps store in `~/.var/app/ai.storyteller.*` (your own
+data, not public material) and the documents you make with them.
+
+**How updating works:** `craft-flatpak-update.timer` fires weekly (`OnCalendar=weekly`, Monday
+00:00 plus up to 10 min random delay); `Persistent=true` catches up a missed run at the next
+login. The script asks the GitHub API for each installed `ai.storyteller.*` app's latest release,
+installs it if the version is newer and the checksum matches, and reports the result with a
+desktop notification (critical on failure). It finds new apps by their ID, so a newly installed
+Craft app is updated without touching the updater. Log: `journalctl --user -u craft-flatpak-update`;
+run it now: `systemctl --user start craft-flatpak-update.service`.
+
+**Keep the backup current** after installing a new Craft app or editing the updater:
+`scripts/workstation/craft/sync-from-live.sh --check` lists what drifted, without `--check` it
+copies the files in and rewrites `apps.list`; review and commit.
 
 ### Sunshine game streaming (Bazzite gaming PC)
 

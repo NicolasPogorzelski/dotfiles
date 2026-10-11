@@ -1,0 +1,6 @@
+# Files of the Craft auto-updater: <path in this directory>|<path under $HOME>
+# Read by restore.sh (repo -> machine) and sync-from-live.sh (machine -> repo).
+# The apps themselves are not files here: apps.list names them, restore.sh downloads them.
+craft-flatpak-update.sh|.local/bin/craft-flatpak-update
+craft-flatpak-update.service|.config/systemd/user/craft-flatpak-update.service
+craft-flatpak-update.timer|.config/systemd/user/craft-flatpak-update.timer

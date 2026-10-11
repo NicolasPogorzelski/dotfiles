@@ -1,0 +1,11 @@
+[Unit]
+Description=Woechentlicher Update-Check fuer die Craft-Flatpaks
+
+[Timer]
+OnCalendar=weekly
+# verpassten Lauf (Rechner aus) beim naechsten Login nachholen; Skript wartet selbst aufs Netz
+Persistent=true
+RandomizedDelaySec=10min
+
+[Install]
+WantedBy=timers.target

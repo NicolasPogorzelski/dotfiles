@@ -1,0 +1,8 @@
+[Unit]
+Description=storytold-Craft-Flatpaks aus GitHub-Releases aktualisieren
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/craft-flatpak-update
+Nice=10
+IOSchedulingClass=idle
