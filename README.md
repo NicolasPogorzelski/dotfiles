@@ -22,12 +22,19 @@ dotfiles/
 │   └── workstation/
 │       ├── sync-gdm-wallpaper.sh       # sync latest Bing wallpaper to the GDM login screen
 │       └── sunshine/
-│           ├── sunshine-display-mode.sh # display layouts: desk / stream (120 Hz dummy) / rollback
-│           ├── mangohud-fps-mode.sh    # MangoHud FPS limit: 60 while streaming, 72 at the desk
+│           ├── restore.sh              # restore the whole setup on a fresh install (--edid: kernel part)
+│           ├── sync-from-live.sh       # copy the live files back in / --check for drift
+│           ├── files.list              # which file goes where; read by both scripts above
+│           ├── sunshine-display-mode.sh # display layouts: desk / stream (120 Hz dummy, phone mode) / rollback
+│           ├── mangohud-fps-mode.sh    # MangoHud FPS limit: 72 desk, 60 Shield, 120 Pixel 9
 │           ├── mangohud-fps-sync.service # user unit: re-apply that limit to configs goverlay rewrites
 │           ├── sunshine-session-watch.sh # close sessions whose client vanished without "Quit"
 │           ├── sunshine-session-watch.service # user unit for it, runs alongside Sunshine
-│           └── reset-desk-state.conf   # systemd drop-in: restore desk state on Sunshine start
+│           ├── reset-desk-state.conf   # systemd drop-in: restore desk state on Sunshine start
+│           ├── app-dev.lizardbyte.app.Sunshine.service # the Sunshine user unit
+│           ├── homebrew-env.conf       # systemd drop-in: Homebrew paths, Vulkan encode, Nice
+│           ├── config/                 # sunshine.conf, apps.json, covers, MangoHud.conf
+│           └── edid/                   # dummy plug EDID: original + patched with the Pixel 9 mode
 └── templates/
     ├── gitconfig                       # ~/.gitconfig
     ├── claude-global-settings.json     # ~/.claude/settings.json
@@ -77,6 +84,25 @@ Standalone helpers - not run by `install.sh`:
 
 ### Sunshine game streaming (Bazzite gaming PC)
 
+**Restore after losing the machine** (Bazzite, Sunshine from Homebrew, dummy plug in HDMI-1):
+
+```bash
+scripts/workstation/sunshine/restore.sh          # scripts, units, configs; enables the services
+scripts/workstation/sunshine/restore.sh --edid   # Pixel 9 native mode (sudo), then reboot
+```
+
+`restore.sh` keeps every live file it replaces as `<file>.bak-<date>` and ends with the steps a
+public repo cannot carry: share the dummy in GNOME's dialog, set the web UI password, pair the
+Shield and the Pixel again, store the password for the session watcher. Not in this repo on
+purpose: `credentials/`, `sunshine_state.json` (paired clients), `portal_token`, `api.cred`.
+
+**Keep the backup current** after changing anything live:
+`scripts/workstation/sunshine/sync-from-live.sh --check` lists what drifted, without `--check` it
+copies it in; review and commit. Run it at the desk, not mid-stream, so `MangoHud.conf` carries
+the desk limit. `files.list` is the single list of what is backed up.
+
+Clients: NVIDIA Shield (16:9, 4K) and Pixel 9 (Moonlight "Native" = 2251x1080 @ 120, HDR).
+
 Streaming goes to a TV through an HDMI dummy plug (`HDMI-1`); the desk monitor (`DP-1`) runs
 75 Hz with VRR. Capture uses the XDG portal (PipeWire), so GNOME hands each finished frame to
 Sunshine instead of Sunshine reading the framebuffer through KMS on its own clock. Background
@@ -89,16 +115,21 @@ and measurements:
   - `desk` - `DP-1` primary, dummy at 60 Hz left of it and shifted down (an invisible second
     monitor; the two only touch along a 221 px strip, so the pointer rarely lands on it)
   - `stream` - dummy only, 4K **120 Hz** HDR (`bt2100`). Games stay capped at 60 FPS; a missed
-    compositor refresh then costs 8.3 ms instead of 16.7 ms
+    compositor refresh then costs 8.3 ms instead of 16.7 ms. A client that is not 16:9 (the
+    Pixel 9) gets the dummy in exactly its mode at 120 Hz if the patched EDID offers it
+    (`restore.sh --edid`), otherwise the 4K120 layout
   - `stream-both` - fallback that keeps `DP-1` on while streaming
   - `kms-desk` - `DP-1` only, the old layout for rolling back to KMS capture
   `gdctl` is called with `LD_LIBRARY_PATH` removed: the Sunshine unit exports Homebrew's lib
   directory, which makes `/usr/bin/python3` load Homebrew's libpython and fail with
   `No module named 'gi'`.
-- `scripts/workstation/sunshine/mangohud-fps-mode.sh stream|desk|apply|watch` - sets
+- `scripts/workstation/sunshine/mangohud-fps-mode.sh stream|stream-phone|desk|apply|watch` - sets
   `fps_limit` and `fps_limit_method` in every goverlay per-game MangoHud config and in
   `~/.config/MangoHud/MangoHud.conf`: `stream` = 60 / `early` (even frame delivery),
-  `desk` = 72 / `late` (below the 75 Hz VRR ceiling, lowest latency). MangoHud reloads its
+  `desk` = 72 / `late` (below the 75 Hz VRR ceiling, lowest latency). `stream` becomes
+  `stream-phone` = 120 / `early` when the client is not 16:9 and asks for 120 FPS (the Pixel 9);
+  the Shield always gets 60. Switches are logged to `journalctl -t mangohud-fps-mode`. After
+  editing the script, restart `mangohud-fps-sync.service`: its loop keeps the old code. MangoHud reloads its
   config on change, so a running game picks it up live. Games without MangoHud are not
   covered - cap them to 60 FPS in-game, or they run at 120 on the 120 Hz dummy.
   `stream`/`desk` remember the mode in `~/.local/state/mangohud-fps-mode`; `apply`
@@ -121,20 +152,7 @@ and measurements:
   covers sessions whose `undo` never ran (crash, reboot mid-stream). The `-` prefix keeps a
   failing restore from blocking the start.
 
-Install:
-
-```bash
-install -m 755 scripts/workstation/sunshine/sunshine-display-mode.sh ~/.local/bin/sunshine-display-mode
-install -m 755 scripts/workstation/sunshine/mangohud-fps-mode.sh ~/.local/bin/mangohud-fps-mode
-install -m 644 scripts/workstation/sunshine/reset-desk-state.conf \
-  ~/.config/systemd/user/app-dev.lizardbyte.app.Sunshine.service.d/reset-desk-state.conf
-install -m 755 scripts/workstation/sunshine/sunshine-session-watch.sh ~/.local/bin/sunshine-session-watch
-install -m 644 scripts/workstation/sunshine/mangohud-fps-sync.service \
-  scripts/workstation/sunshine/sunshine-session-watch.service ~/.config/systemd/user/
-systemctl --user daemon-reload
-systemctl --user enable --now mangohud-fps-sync.service
-systemctl --user enable sunshine-session-watch.service
-```
+Install: `restore.sh` (above) does all of it.
 
 The session watcher stays inactive until its credential exists (`ConditionPathExists=`).
 Store the Sunshine web UI password - typed at the prompt, so it never reaches the shell
@@ -150,7 +168,7 @@ systemctl --user restart sunshine-session-watch.service
 After changing the password, encrypt it again and `restart` (not `start`) the watcher: the
 service reads the credential only when it starts.
 
-`~/.config/sunshine/sunshine.conf` (prep commands run in order on connect and in reverse on
+`~/.config/sunshine/sunshine.conf` (full file in `config/`; prep commands run in order on connect and in reverse on
 session end; they are executed without a shell, so `&&` chaining does not work):
 
 ```

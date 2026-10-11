@@ -3,6 +3,9 @@
 # and desk use (75 Hz VRR monitor). Called by Sunshine's global_prep_cmd:
 #   do   -> mangohud-fps-mode stream
 #   undo -> mangohud-fps-mode desk
+# "stream" turns into "stream-phone" (120 FPS cap) when the client is a phone
+# (non-16:9, same test as sunshine-display-mode) and asks for 120 FPS; the
+# Shield (16:9) always gets the 60 FPS cap.
 # MangoHud reloads its config on change, so running games pick it up live.
 #
 # The chosen mode is remembered in a state file. Goverlay (re)writes per-game
@@ -21,6 +24,7 @@ watch_interval=2
 settings_for() {  # settings_for <mode>: sets limit and method, fails on unknown mode
     case "$1" in
         stream) limit=60; method=early ;;  # even pacing for fixed 60 Hz capture
+        stream-phone) limit=120; method=early ;;  # Pixel 9: 120 Hz panel, dummy at 120 Hz
         desk)   limit=72; method=late  ;;  # just below 75 Hz VRR ceiling, lowest latency
         *) return 1 ;;
     esac
@@ -60,13 +64,19 @@ remembered_mode() {
 }
 
 case "${1:-}" in
-    stream|desk)
+    stream|stream-phone|desk)
         mode=$1
+        w=${SUNSHINE_CLIENT_WIDTH:-0} h=${SUNSHINE_CLIENT_HEIGHT:-0}
+        if [ "$mode" = stream ] && (( w > 0 && h > 0 && w * 9 != h * 16 &&
+                                      ${SUNSHINE_CLIENT_FPS:-0} >= 120 )); then
+            mode=stream-phone
+        fi
         settings_for "$mode"
         mkdir -p "$(dirname "$state_file")"
         echo "$mode" > "$state_file"
         apply_mode
-        echo "mangohud-fps-mode: now $mode (fps_limit=$limit, $method)" ;;
+        echo "mangohud-fps-mode: now $mode (fps_limit=$limit, $method)"
+        logger -t mangohud-fps-mode "now $mode (fps_limit=$limit, $method)" ;;
     apply)
         mode=$(remembered_mode)
         settings_for "$mode"
@@ -78,5 +88,5 @@ case "${1:-}" in
             apply_mode
             sleep "$watch_interval"
         done ;;
-    *) echo "usage: ${0##*/} stream|desk|apply|watch" >&2; exit 2 ;;
+    *) echo "usage: ${0##*/} stream|stream-phone|desk|apply|watch" >&2; exit 2 ;;
 esac

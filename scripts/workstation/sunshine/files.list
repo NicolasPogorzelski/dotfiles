@@ -1,0 +1,23 @@
+# Files of the Sunshine/Moonlight setup: <path in this directory>|<path under $HOME>
+# Read by restore.sh (repo -> machine) and sync-from-live.sh (machine -> repo).
+#
+# The repo is public. Never add these:
+#   .config/sunshine/credentials/        web UI login
+#   .config/sunshine/sunshine_state.json  paired clients and their certificates
+#   .config/sunshine/portal_token        screen-share grant, bound to this machine
+#   .config/sunshine-session-watch/      encrypted web UI password
+sunshine-display-mode.sh|.local/bin/sunshine-display-mode
+mangohud-fps-mode.sh|.local/bin/mangohud-fps-mode
+sunshine-session-watch.sh|.local/bin/sunshine-session-watch
+app-dev.lizardbyte.app.Sunshine.service|.config/systemd/user/app-dev.lizardbyte.app.Sunshine.service
+homebrew-env.conf|.config/systemd/user/app-dev.lizardbyte.app.Sunshine.service.d/homebrew-env.conf
+reset-desk-state.conf|.config/systemd/user/app-dev.lizardbyte.app.Sunshine.service.d/reset-desk-state.conf
+mangohud-fps-sync.service|.config/systemd/user/mangohud-fps-sync.service
+sunshine-session-watch.service|.config/systemd/user/sunshine-session-watch.service
+config/sunshine.conf|.config/sunshine/sunshine.conf
+config/apps.json|.config/sunshine/apps.json
+config/covers/desktop.png|.config/sunshine/covers/desktop.png
+config/covers/lutris.png|.config/sunshine/covers/lutris.png
+config/MangoHud.conf|.config/MangoHud/MangoHud.conf
+edid/llv-phone.bin|.config/sunshine/edid/llv-phone.bin
+edid/dummy-orig.bin|.config/sunshine/edid/dummy-orig.bin
