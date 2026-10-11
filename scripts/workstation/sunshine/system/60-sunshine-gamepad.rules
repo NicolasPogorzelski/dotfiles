@@ -1,0 +1,3 @@
+# Sunshine virtual Xbox controller - mark as gamepad for SDL detection
+KERNEL=="event*", SUBSYSTEM=="input", ATTRS{name}=="Sunshine X-Box One (virtual) pad", \
+  ENV{ID_INPUT_GAMEPAD}="1", TAG+="uaccess"

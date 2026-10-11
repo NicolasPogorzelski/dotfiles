@@ -1,0 +1,28 @@
+name: gitleaks
+
+# The repo is public and sync-from-live.sh copies whatever the lists name. This
+# scans the full history on every push for keys, tokens and passwords, so a
+# secret that slipped in fails the run instead of going unnoticed.
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        # Pinned to a commit SHA: a major-version tag is a moving reference the
+        # upstream owner can repoint at any commit.
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Scan for secrets
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

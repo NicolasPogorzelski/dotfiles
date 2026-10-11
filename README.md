@@ -22,9 +22,11 @@ dotfiles/
 │   └── workstation/
 │       ├── sync-gdm-wallpaper.sh       # sync latest Bing wallpaper to the GDM login screen
 │       └── sunshine/
-│           ├── restore.sh              # restore the whole setup on a fresh install (--edid: kernel part)
+│           ├── restore.sh              # restore the whole setup on a fresh install (--system: sudo part)
 │           ├── sync-from-live.sh       # copy the live files back in / --check for drift
-│           ├── files.list              # which file goes where; read by both scripts above
+│           ├── files.list              # files under $HOME: which goes where; read by both scripts above
+│           ├── system.list             # files under /etc (udev rules, EDID), restored by --system
+│           ├── gsettings.list          # GNOME settings the stream needs (no blanking, no suspend)
 │           ├── sunshine-display-mode.sh # display layouts: desk / stream (120 Hz dummy, phone mode) / rollback
 │           ├── mangohud-fps-mode.sh    # MangoHud FPS limit: 72 desk, 60 Shield, 120 Pixel 9
 │           ├── mangohud-fps-sync.service # user unit: re-apply that limit to configs goverlay rewrites
@@ -34,6 +36,7 @@ dotfiles/
 │           ├── app-dev.lizardbyte.app.Sunshine.service # the Sunshine user unit
 │           ├── homebrew-env.conf       # systemd drop-in: Homebrew paths, Vulkan encode, Nice
 │           ├── config/                 # sunshine.conf, apps.json, covers, MangoHud.conf
+│           ├── system/                 # udev rules: virtual gamepad, uhid, Wake-on-LAN
 │           └── edid/                   # dummy plug EDID: original + patched with the Pixel 9 mode
 └── templates/
     ├── gitconfig                       # ~/.gitconfig
@@ -87,8 +90,10 @@ Standalone helpers - not run by `install.sh`:
 **Restore after losing the machine** (Bazzite, Sunshine from Homebrew, dummy plug in HDMI-1):
 
 ```bash
-scripts/workstation/sunshine/restore.sh          # scripts, units, configs; enables the services
-scripts/workstation/sunshine/restore.sh --edid   # Pixel 9 native mode (sudo), then reboot
+brew install lizardbyte/homebrew/sunshine         # tested with 2026.914.233613
+flatpak install flathub io.github.benjamimgois.goverlay
+scripts/workstation/sunshine/restore.sh           # scripts, units, configs, GNOME settings; enables the services
+scripts/workstation/sunshine/restore.sh --system  # udev rules + Pixel 9 EDID + kernel arguments (sudo), then reboot
 ```
 
 `restore.sh` keeps every live file it replaces as `<file>.bak-<date>` and ends with the steps a
@@ -99,9 +104,24 @@ purpose: `credentials/`, `sunshine_state.json` (paired clients), `portal_token`,
 **Keep the backup current** after changing anything live:
 `scripts/workstation/sunshine/sync-from-live.sh --check` lists what drifted, without `--check` it
 copies it in; review and commit. Run it at the desk, not mid-stream, so `MangoHud.conf` carries
-the desk limit. `files.list` is the single list of what is backed up.
+the desk limit. The three `*.list` files are the single record of what is backed up;
+`sync-from-live.sh` refuses to run while `validate.sh` fails, and check 5 there rejects any list
+naming one of Sunshine's secrets. The gitleaks workflow scans every commit on GitHub on top of that.
 
-Clients: NVIDIA Shield (16:9, 4K) and Pixel 9 (Moonlight "Native" = 2251x1080 @ 120, HDR).
+Not part of the backup, because nothing needs changing: MangoHud ships with Bazzite, and
+Bazzite's default firewall zone (`FedoraWorkstation`) already allows ports 1025-65535, which
+covers Sunshine's 47984-48010. Games get MangoHud through goverlay; set them up there again,
+`mangohud-fps-sync.service` then applies the right FPS limit to their new configs.
+
+#### Clients
+
+Moonlight settings that the client detection depends on (set by hand, Moonlight keeps them on
+the device):
+
+| Client | Resolution | FPS | HDR | Result on the PC |
+|---|---|---|---|---|
+| NVIDIA Shield TV Pro 2019 | 4K (3840x2160) | 60 | on | dummy 4K120, FPS cap 60 |
+| Pixel 9 | Native (2251x1080) | 120 | on | dummy 2251x1080@120, FPS cap 120 |
 
 Streaming goes to a TV through an HDMI dummy plug (`HDMI-1`); the desk monitor (`DP-1`) runs
 75 Hz with VRR. Capture uses the XDG portal (PipeWire), so GNOME hands each finished frame to
@@ -117,7 +137,7 @@ and measurements:
   - `stream` - dummy only, 4K **120 Hz** HDR (`bt2100`). Games stay capped at 60 FPS; a missed
     compositor refresh then costs 8.3 ms instead of 16.7 ms. A client that is not 16:9 (the
     Pixel 9) gets the dummy in exactly its mode at 120 Hz if the patched EDID offers it
-    (`restore.sh --edid`), otherwise the 4K120 layout
+    (`restore.sh --system`), otherwise the 4K120 layout
   - `stream-both` - fallback that keeps `DP-1` on while streaming
   - `kms-desk` - `DP-1` only, the old layout for rolling back to KMS capture
   `gdctl` is called with `LD_LIBRARY_PATH` removed: the Sunshine unit exports Homebrew's lib

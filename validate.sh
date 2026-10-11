@@ -43,6 +43,22 @@ else
   ERRORS=$((ERRORS+1))
 fi
 
+# Check 5: the Sunshine backup lists none of Sunshine's secrets (the repo is public)
+echo "Check 5: no Sunshine secrets in the backup lists"
+forbidden='credentials|sunshine_state\.json|portal_token|sunshine-session-watch/|\.cred$'
+if grep -vh '^#' scripts/workstation/sunshine/*.list | grep -nE "$forbidden"; then
+  echo "  FAIL: a secret is listed above - remove it from the list and the file from the repo"
+  ERRORS=$((ERRORS+1))
+else
+  echo "  OK: no secrets listed"
+fi
+for secret in credentials sunshine_state.json portal_token api.cred; do
+  if [ -e "scripts/workstation/sunshine/config/$secret" ]; then
+    echo "  FAIL: scripts/workstation/sunshine/config/$secret exists"
+    ERRORS=$((ERRORS+1))
+  fi
+done
+
 echo ""
 if [ $ERRORS -eq 0 ]; then
   echo "PASS: all checks passed."

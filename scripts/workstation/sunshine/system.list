@@ -1,0 +1,6 @@
+# System files of the Sunshine/Moonlight setup: <path in this directory>|<absolute path>
+# Installed with sudo by "restore.sh --system", read back by sync-from-live.sh.
+system/60-sunshine-gamepad.rules|/etc/udev/rules.d/60-sunshine-gamepad.rules
+system/85-sunshine-uhid.rules|/etc/udev/rules.d/85-sunshine-uhid.rules
+system/81-wol.rules|/etc/udev/rules.d/81-wol.rules
+edid/llv-phone.bin|/etc/firmware/edid/llv-phone.bin

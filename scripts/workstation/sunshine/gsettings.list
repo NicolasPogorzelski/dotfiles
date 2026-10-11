@@ -1,0 +1,5 @@
+# GNOME settings the stream depends on: <schema> <key> <value>
+# A blanked, locked or suspended session stops the portal capture.
+# restore.sh applies these; sync-from-live.sh refreshes the values.
+org.gnome.desktop.session idle-delay uint32 0
+org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type 'nothing'
