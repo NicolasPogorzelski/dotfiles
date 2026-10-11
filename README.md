@@ -10,6 +10,9 @@ to reproduce the setup on any machine.
 - `~/.claude/hooks/publish-guard.sh` - the global publish guard the settings call: no push, PR or
   release by Claude; single exception `git -C ~/git/overthewire-bandit push`
 - `~/git/homelab-server-architecture/.claude/settings.local.json` - project-local Claude Code hooks
+- The Bazzite gaming PC's own setup, one module per topic under `scripts/workstation/` (Sunshine,
+  displays, shortcuts, PartyDeck, Craft apps, backup reminder): `restore-all.sh` rebuilds it,
+  `sync-all.sh` backs it up - see [Workstation modules](#workstation-modules)
 
 ## Structure
 
@@ -20,13 +23,35 @@ dotfiles/
 ├── validate.sh                         # checks template integrity before install
 ├── scripts/
 │   └── workstation/
+│       ├── restore-all.sh              # restore every module below (--system: their sudo parts too)
+│       ├── sync-all.sh                 # back up every module below / --check for drift
 │       ├── sync-gdm-wallpaper.sh       # sync latest Bing wallpaper to the GDM login screen
+│       ├── backup-watch/
+│       │   ├── restore.sh              # install the reminder + enable its timer
+│       │   ├── sync-from-live.sh       # copy the live files back in / --check for drift
+│       │   ├── files.list              # files under $HOME; read by both scripts above
+│       │   ├── backup-watch.sh         # sync-all.sh --check + uncommitted/unpushed -> notification
+│       │   ├── backup-watch.service    # user unit running it once
+│       │   └── backup-watch.timer      # daily, catches up after downtime
 │       ├── displays/
-│       │   ├── restore.sh              # Fenster-Heimholer extension + custom shortcuts (Super+Alt+D)
-│       │   ├── sync-from-live.sh       # copy the live files and shortcuts back in / --check for drift
+│       │   ├── restore.sh              # Fenster-Heimholer extension
+│       │   ├── sync-from-live.sh       # copy the live files back in / --check for drift
 │       │   ├── files.list              # extension files under $HOME; read by both scripts above
-│       │   ├── keybindings.list        # custom shortcuts: name|binding|command
 │       │   └── window-heimholer/       # GNOME extension: windows -> primary monitor (in progress)
+│       ├── partydeck/
+│       │   ├── restore.sh              # PartyDeck + its GE-Proton from GitHub, starter, tiler, settings
+│       │   ├── sync-from-live.sh       # copy the live files back in (@HOME@, SDL backend off) / --check
+│       │   ├── files.list              # files under $HOME; read by both scripts above
+│       │   ├── partydeck-start.sh      # starter, logs to ~/.local/share/partydeck/last-run.log
+│       │   ├── partydeck-layout.sh     # 2-player split: top/bottom <-> left/right (Super+Alt+S)
+│       │   ├── partydeck.desktop, partydeck.png # menu entry and icon
+│       │   ├── settings.json           # PartyDeck settings (Wayland backend, GE-Proton)
+│       │   ├── handlers/               # game handlers (Secrets of Grindea)
+│       │   └── tiler/                  # partydeck-tiler GNOME extension + its layout/monitor config
+│       ├── shortcuts/
+│       │   ├── restore.sh              # add or update every custom shortcut by name
+│       │   ├── sync-from-live.sh       # rewrite the list from live / --check, reports unlisted shortcuts
+│       │   └── keybindings.list        # GNOME custom shortcuts: name|binding|command
 │       ├── craft/
 │       │   ├── restore.sh              # install all Craft apps from GitHub + the weekly auto-updater
 │       │   ├── sync-from-live.sh       # copy the live updater back in, rewrite apps.list / --check for drift
@@ -90,9 +115,48 @@ the physical `/var/home/...` form rather than the `$HOME` form. On Bazzite and S
 unequal to what `git rev-parse --show-toplevel` returns, which silently disabled the
 commit guard.
 
-## Workstation scripts
+## Workstation modules
 
-Standalone helpers - not run by `install.sh`:
+Everything under `scripts/workstation/` that sets up the Bazzite gaming PC is a module: one
+directory per topic. Not run by `install.sh`.
+
+**Restore after losing the machine**, all of it in one go:
+
+```bash
+git clone https://github.com/NicolasPogorzelski/dotfiles.git ~/git/dotfiles
+cd ~/git/dotfiles
+scripts/workstation/restore-all.sh            # every module's user part
+scripts/workstation/restore-all.sh --system   # then the sudo parts (Sunshine), reboot afterwards
+```
+
+Prerequisites a module cannot install itself are named in its section below (Sunshine from
+Homebrew, the games in Steam). A failing module does not stop the others; the summary names it,
+and running the script again is safe. `restore-all.sh sunshine partydeck` restores only those.
+
+**Keep the backup current:** `scripts/workstation/sync-all.sh --check` lists what drifted in any
+module; without `--check` it copies the live state in. Review with `git diff`, commit, push.
+`backup-watch` runs that check every day and raises a desktop notification when something
+drifted, is not committed or not pushed - so the only routine left is reacting to it.
+
+**The contract** - what makes a directory a module. `restore-all.sh` and `sync-all.sh` find
+modules by it, so a new one needs no change anywhere else; `validate.sh` check 6 enforces it.
+
+- `restore.sh` - executable, idempotent, non-interactive, no sudo. Installs what is missing,
+  writes the backed-up files, keeps every live file it replaces as `<file>.bak-<date>`, and
+  prints the steps it cannot do (logins, passwords, pairing) at the end.
+- `restore.sh --system` - optional sudo part (files under `/etc`, kernel arguments).
+  `restore-all.sh --system` runs it for every module whose `restore.sh` handles `--system`.
+- `sync-from-live.sh [--check]` - executable. Copies the live state into the module; with
+  `--check` it changes nothing, prints what drifted and exits 1 on drift.
+- `files.list` (usual, not required) - `<path in the module>|<path under $HOME>`, the single
+  record of what is backed up. Never list a secret: the repository is public, and `validate.sh`
+  check 5 rejects lists naming credentials, tokens, keys, `.env` files or `~/.ssh`.
+
+**A new module:** copy `backup-watch/` (the smallest), rename, list the files, run its
+`sync-from-live.sh`, then `./validate.sh` and commit. Modules run in alphabetical order; none
+depends on another today.
+
+### Other workstation scripts
 
 - `scripts/workstation/sync-gdm-wallpaper.sh` - copies the latest image downloaded by
   the Bing Wallpaper GNOME extension to the GDM login screen background via dconf
@@ -133,7 +197,8 @@ copies the files in and rewrites `apps.list`; review and commit.
 ### Display helpers (Bazzite gaming PC)
 
 Switching between the desk layout and the Sunshine dummy (see below) leaves windows on the
-invisible HDMI-1 dummy. Two helpers deal with that:
+invisible HDMI-1 dummy. Two helpers deal with that, the extension in this module and a shortcut
+in `shortcuts/`:
 
 - **Fenster-Heimholer** (`window-heimholer@nicolas`) - **in progress: not tested live yet**
   (needs a re-login first). A GNOME extension that moves app windows
@@ -141,15 +206,45 @@ invisible HDMI-1 dummy. Two helpers deal with that:
   monitor change, all windows on `Super+Shift+1`. Dialogs follow their parent, gamescope windows
   are left to the PartyDeck tiler. Log: `journalctl --user -b -g window-heimholer`.
 - **`Super+Alt+D`**, a custom shortcut making the ultrawide (DP-1) the only display, for when the
-  picture is stuck on the dummy.
+  picture is stuck on the dummy (see [Custom shortcuts](#custom-shortcuts)).
 
 **Restore:** `scripts/workstation/displays/restore.sh`, then log out and in once (GNOME on
-Wayland loads a new extension only at login). Shortcuts are matched by name, so running it again
-updates them instead of adding duplicates.
+Wayland loads a new extension only at login).
 
-**Keep the backup current** after editing the extension or the shortcut:
+**Keep the backup current** after editing the extension:
 `scripts/workstation/displays/sync-from-live.sh --check` lists what drifted, without `--check` it
 copies it in; review and commit.
+
+### Custom shortcuts
+
+`scripts/workstation/shortcuts/keybindings.list` holds every GNOME custom shortcut
+(Settings -> Keyboard -> Custom Shortcuts): `Ctrl+Alt+T` terminal, `Ctrl+Alt+Del` (keypad) and
+`Ctrl+Shift+Esc` Mission Center, `Super+Alt+D` ultrawide only, `Super+Alt+S` PartyDeck split.
+Entries are matched by name, so names must be unique and running `restore.sh` again updates
+instead of duplicating. `@HOME@` in a command stands for the home directory, since GNOME runs
+the command without a shell. A shortcut created in Settings shows up in
+`sync-from-live.sh --check` as "not backed up": add a line with its name, then sync.
+
+### PartyDeck splitscreen (Bazzite gaming PC)
+
+[PartyDeck](https://github.com/partydeck/partydeck) runs several instances of a game side by side,
+one controller each. `restore.sh` installs it from the latest release (the SteamOS tarball: the
+AppImage lacked `res/goldberg`) when it is missing, and the GE-Proton build `settings.json` names,
+checked against its published sha512. PartyDeck itself publishes no checksums. Then it writes
+the starter (`partydeck-start`, log in `~/.local/share/partydeck/last-run.log`), menu entry,
+settings, the Secrets of Grindea handler and the `partydeck-tiler@nicolas` GNOME extension.
+
+- **Tiler, not KWin:** PartyDeck tiles its windows through a nested KWin, which Bazzite's GNOME
+  lacks. The tiler extension places the gamescope windows instead, on the monitor named in
+  `~/.config/partydeck-tiler/monitor` (DP-1) in the layout of `.../layout`.
+  `Super+Alt+S` (`partydeck-layout`) toggles two players between top/bottom and left/right.
+- **SDL backend off:** gamescope on the SDL (XWayland) backend flickers with black tiles here,
+  on Wayland it does not. PartyDeck's GUI turns `gamescope_sdl_backend` back on when it saves;
+  the backup always stores `false`, and `restore.sh` writes it.
+- **Not backed up:** profiles (game saves), Wine prefixes (1+ GB, recreated on first start), the
+  games themselves (Steam).
+- **Open (2026-10-03):** with two players only one window was visible although both instances
+  ran; see the PartyDeck notes before relying on it.
 
 ### Sunshine game streaming (Bazzite gaming PC)
 

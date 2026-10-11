@@ -1,0 +1,5 @@
+# Files of the backup reminder: <path in this directory>|<path under $HOME>
+# Read by restore.sh (repo -> machine) and sync-from-live.sh (machine -> repo).
+backup-watch.sh|.local/bin/backup-watch
+backup-watch.service|.config/systemd/user/backup-watch.service
+backup-watch.timer|.config/systemd/user/backup-watch.timer

@@ -43,10 +43,11 @@ else
   ERRORS=$((ERRORS+1))
 fi
 
-# Check 5: the Sunshine backup lists none of Sunshine's secrets (the repo is public)
-echo "Check 5: no Sunshine secrets in the backup lists"
-forbidden='credentials|sunshine_state\.json|portal_token|sunshine-session-watch/|\.cred$'
-if grep -vh '^#' scripts/workstation/sunshine/*.list | grep -nE "$forbidden"; then
+# Check 5: no module backs up a secret (the repo is public). The lists decide what is
+# copied in, so a secret named in one would reach GitHub with the next sync.
+echo "Check 5: no secrets in the workstation backup lists"
+forbidden='credentials|sunshine_state\.json|portal_token|sunshine-session-watch/|\.cred$|\.env$|/\.ssh/|\.gnupg/|(^|/)\.?secrets?(/|$)|_token|token$|password|api[_-]?key'
+if grep -vh '^#' scripts/workstation/*/*.list | grep -inE "$forbidden"; then
   echo "  FAIL: a secret is listed above - remove it from the list and the file from the repo"
   ERRORS=$((ERRORS+1))
 else
@@ -57,6 +58,20 @@ for secret in credentials sunshine_state.json portal_token api.cred; do
     echo "  FAIL: scripts/workstation/sunshine/config/$secret exists"
     ERRORS=$((ERRORS+1))
   fi
+done
+
+# Check 6: every workstation module keeps the contract restore-all.sh and sync-all.sh
+# rely on: an executable restore.sh and sync-from-live.sh (README, "Workstation modules")
+echo "Check 6: workstation modules have restore.sh and sync-from-live.sh"
+for dir in scripts/workstation/*/; do
+  for script in restore.sh sync-from-live.sh; do
+    if [ -x "$dir$script" ]; then
+      echo "  OK: $dir$script"
+    else
+      echo "  FAIL: $dir$script missing or not executable"
+      ERRORS=$((ERRORS+1))
+    fi
+  done
 done
 
 echo ""

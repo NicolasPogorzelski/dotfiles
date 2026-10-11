@@ -1,0 +1,15 @@
+# Files of the PartyDeck splitscreen setup: <path in this directory>|<path under $HOME>
+# Read by restore.sh (repo -> machine) and sync-from-live.sh (machine -> repo).
+# @HOME@ in a file stands for the home directory; sync-from-live.sh writes it, restore.sh
+# fills it in. Not backed up: PartyDeck itself (restore.sh downloads it), profiles/ (game
+# saves), prefixes/ (Wine prefixes, 1+ GB, PartyDeck recreates them), logs.
+partydeck-start.sh|.local/bin/partydeck-start
+partydeck-layout.sh|.local/bin/partydeck-layout
+partydeck.desktop|.local/share/applications/partydeck.desktop
+partydeck.png|.local/share/icons/hicolor/256x256/apps/partydeck.png
+settings.json|.local/share/partydeck/settings.json
+handlers/SecretsOfGrindea/handler.json|.local/share/partydeck/handlers/SecretsOfGrindea/handler.json
+tiler/metadata.json|.local/share/gnome-shell/extensions/partydeck-tiler@nicolas/metadata.json
+tiler/extension.js|.local/share/gnome-shell/extensions/partydeck-tiler@nicolas/extension.js
+tiler/layout|.config/partydeck-tiler/layout
+tiler/monitor|.config/partydeck-tiler/monitor

@@ -1,0 +1,10 @@
+# GNOME custom shortcuts (Settings -> Keyboard -> Custom Shortcuts): <name>|<binding>|<command>
+# The name identifies the entry, so names must be unique: restore.sh updates the entry with
+# that name or adds one, sync-from-live.sh rewrites binding and command from the live entry.
+# @HOME@ stands for the home directory (gsettings commands get no shell, so no ~ or $HOME).
+# A new shortcut: add a line here with its name, then run sync-from-live.sh.
+Terminal|<Control><Alt>t|ptyxis --new-window
+Mission Center (Strg+Alt+Entf)|<Control><Alt>KP_Delete|flatpak run io.missioncenter.MissionCenter
+Mission Center (Strg+Umschalt+Esc)|<Control><Shift>Escape|flatpak run io.missioncenter.MissionCenter
+Display -> nur Ultrawide (Notfall)|<Super><Alt>d|/usr/bin/gdctl set --logical-monitor --monitor DP-1 --mode 3440x1440@75.050+vrr --primary
+PartyDeck Splitscreen umschalten|<Super><Alt>s|@HOME@/.local/bin/partydeck-layout toggle

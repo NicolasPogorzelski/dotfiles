@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily dotfiles backup check
+
+[Timer]
+OnCalendar=daily
+# catch up a run missed while the machine was off
+Persistent=true
+RandomizedDelaySec=30min
+
+[Install]
+WantedBy=timers.target

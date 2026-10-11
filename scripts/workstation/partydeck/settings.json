@@ -1,0 +1,16 @@
+{
+  "enable_kwin_script": false,
+  "gamescope_fix_lowres": true,
+  "gamescope_sdl_backend": false,
+  "gamescope_force_grab_cursor": false,
+  "kbm_support": false,
+  "proton_version": "@HOME@/.local/share/Steam/compatibilitytools.d/GE-Proton11-7-x86_64",
+  "proton_separate_pfxs": true,
+  "proton_wow64": true,
+  "vertical_two_player": false,
+  "pad_filter_type": "NoSteamInput",
+  "allow_multiple_instances_on_same_device": false,
+  "profile_unique_dirs": true,
+  "disable_mount_gamedirs": false,
+  "check_for_updates": false
+}

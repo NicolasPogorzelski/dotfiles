@@ -1,0 +1,8 @@
+[Unit]
+Description=Check whether the dotfiles backup of this workstation is current
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/backup-watch
+Nice=10
+IOSchedulingClass=idle

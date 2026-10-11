@@ -1,0 +1,23 @@
+{
+  "name": "Secrets of Grindea",
+  "author": "Nicolas",
+  "version": "1.0",
+  "info": "Proton + Goldberg. Spieler 1: Multiplayer > Host. Spieler 2-4: Multiplayer > Join (Steam-Einladung wird auto-angenommen) oder per IP 127.0.0.1 verbinden.",
+  "spec_ver": 3,
+
+  "path_gameroot": "",
+  "runtime": "",
+  "exec": "Secrets Of Grindea.exe",
+  "args": "",
+  "env": "SDL_VIDEODRIVER=wayland",
+  "sdl2_override": "No",
+
+  "pause_between_starts": 4.0,
+
+  "use_mangohud": false,
+  "use_goldberg": true,
+  "ps_xinput": true,
+  "steam_appid": 269770,
+
+  "game_null_paths": []
+}

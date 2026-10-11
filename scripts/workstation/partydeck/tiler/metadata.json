@@ -1,0 +1,6 @@
+{
+  "uuid": "partydeck-tiler@nicolas",
+  "name": "PartyDeck Tiler",
+  "description": "Ordnet gamescope-Fenster (PartyDeck) automatisch im Splitscreen an. Monitor in ~/.config/partydeck-tiler/monitor (z.B. HDMI-1 oder DP-1), Anordnung bei 2 Spielern in ~/.config/partydeck-tiler/layout (oben-unten/links-rechts), Umschalten mit partydeck-layout.",
+  "shell-version": ["50"]
+}

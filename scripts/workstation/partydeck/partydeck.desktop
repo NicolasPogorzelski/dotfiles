@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=PartyDeck
+Comment=Splitscreen-Launcher (mehrere Spielinstanzen)
+Exec=@HOME@/.local/bin/partydeck-start
+Icon=partydeck
+Terminal=false
+Categories=Game;
