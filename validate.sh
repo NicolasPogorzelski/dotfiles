@@ -74,6 +74,15 @@ for dir in scripts/workstation/*/; do
   done
 done
 
+# Check 7: the global instructions import the private profile, and nothing else personal
+echo "Check 7: global CLAUDE.md template imports the profile"
+if grep -qx '@~/git/career-plan/claude-profil.md' templates/claude-global-CLAUDE.md; then
+  echo "  OK: templates/claude-global-CLAUDE.md"
+else
+  echo "  FAIL: profile import missing from templates/claude-global-CLAUDE.md"
+  ERRORS=$((ERRORS+1))
+fi
+
 echo ""
 if [ $ERRORS -eq 0 ]; then
   echo "PASS: all checks passed."
