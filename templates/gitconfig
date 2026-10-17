@@ -1,6 +1,7 @@
 [user]
 	name = NicolasPogorzelski
 	email = nicolas.pogorzelski@proton.me
+	signingkey = <home>/.ssh/id_ed25519_signing.pub
 
 [init]
 	defaultBranch = main
@@ -13,3 +14,15 @@
 
 [core]
 	editor = nano
+
+[gpg]
+	format = ssh
+
+[gpg "ssh"]
+	allowedSignersFile = <home>/.ssh/allowed_signers
+
+[commit]
+	gpgsign = true
+
+[tag]
+	gpgsign = true

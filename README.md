@@ -110,6 +110,8 @@ which is not template material.
 - Credential helpers in `~/.gitconfig`. The `gh auth git-credential` entry names a path
   that exists on one machine; each workstation adds its own after install.
 - The allow list in `settings.local.json`, for the reason above.
+- The SSH signing key and `~/.ssh/allowed_signers`. `~/.gitconfig` names both and signs every
+  commit and tag, so on a machine without them each commit fails until they are in place.
 
 ## Paths on rpm-ostree systems
 

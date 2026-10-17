@@ -17,7 +17,7 @@ if [ "${1:-}" = "--dry-run" ]; then
 fi
 
 render() {
-  sed "s|<repo-path>|$REPO_PATH|g" "$1"
+  sed -e "s|<repo-path>|$REPO_PATH|g" -e "s|<home>|$HOME|g" "$1"
 }
 
 # What the live file has and the template lacks is either a change to port
@@ -38,7 +38,7 @@ show_diff() {
         && echo "  identical (allow list excluded)"
       ;;
     *)
-      diff "$template" "$destination" && echo "  identical"
+      diff <(render "$template") "$destination" && echo "  identical"
       ;;
   esac
 }
