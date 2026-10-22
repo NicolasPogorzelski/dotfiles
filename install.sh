@@ -2,7 +2,7 @@
 set -e
 
 DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
-DRY_RUN=false
+MODE=apply
 
 # The physical path, symlinks resolved. On rpm-ostree systems /home is a
 # symlink to /var/home, and a hook path rendered from $HOME would be the
@@ -10,20 +10,49 @@ DRY_RUN=false
 # resolves physically, so the two must agree. readlink -f settles it once.
 REPO_PATH="$(readlink -f "$HOME/git/homelab-server-architecture")"
 
-if [ "${1:-}" = "--dry-run" ]; then
-  DRY_RUN=true
-  echo "[dry-run mode - no files will be written]"
-  echo ""
-fi
+case "${1:-}" in
+  --dry-run)
+    MODE=dry-run
+    echo "[dry-run mode - no files will be written]"
+    echo ""
+    ;;
+  # Quiet drift report for backup-watch: one "DRIFTED: <file>" line per live file
+  # that differs from its template, exit 1 if any does. Writes nothing.
+  --check) MODE=check ;;
+esac
+
+DRIFT=0
 
 render() {
   sed -e "s|<repo-path>|$REPO_PATH|g" -e "s|<home>|$HOME|g" "$1"
 }
 
+# The template as it would land on this machine. A JSON file keeps the machine's
+# permissions.allow entries next to the template's: Claude Code appends to that list
+# per machine, and an install that replaced it would take back every approval.
+render_for() {
+  local template="$1"
+  local destination="$2"
+  if [[ "$destination" == *.json && -f "$destination" ]]; then
+    render "$template" | jq --indent 2 --slurpfile live "$destination" '
+      ((.permissions.allow // []) + ($live[0].permissions.allow // [])) as $allow
+      | if $allow == [] then . else .permissions.allow = ($allow | unique) end'
+  else
+    render "$template"
+  fi
+}
+
+# JSON is compared with sorted keys and a sorted allow list, so the order Claude Code
+# writes in is no drift.
+normalized() {
+  case "$1" in
+    *.json) jq -S 'if .permissions.allow then .permissions.allow |= sort else . end' ;;
+    *) cat ;;
+  esac
+}
+
 # What the live file has and the template lacks is either a change to port
-# back or a reason not to install. The project file's permissions.allow list
-# is left out of the comparison: Claude Code appends to it per machine, and
-# it is not template material.
+# back or a reason not to install.
 show_diff() {
   local template="$1"
   local destination="$2"
@@ -31,34 +60,44 @@ show_diff() {
     echo "  new file (nothing to compare)"
     return
   fi
-  case "$destination" in
-    *.json)
-      diff <(render "$template" | jq -S 'del(.permissions.allow)') \
-           <(jq -S 'del(.permissions.allow)' "$destination") \
-        && echo "  identical (allow list excluded)"
-      ;;
-    *)
-      diff <(render "$template") "$destination" && echo "  identical"
-      ;;
-  esac
+  diff <(render_for "$template" "$destination" | normalized "$destination") \
+       <(normalized "$destination" < "$destination") \
+    && echo "  identical"
 }
 
 write_file() {
   local template="$1"
   local destination="$2"
-  if $DRY_RUN; then
-    echo "[dry-run] would write: $destination"
-    show_diff "$template" "$destination" || true
-  else
-    mkdir -p "$(dirname "$destination")"
-    render "$template" > "$destination"
-  fi
+  case "$MODE" in
+    dry-run)
+      echo "[dry-run] would write: $destination"
+      show_diff "$template" "$destination" || true
+      ;;
+    check)
+      if [ ! -f "$destination" ] || ! cmp -s \
+          <(render_for "$template" "$destination" | normalized "$destination") \
+          <(normalized "$destination" < "$destination"); then
+        echo "DRIFTED: $destination"
+        DRIFT=1
+      fi
+      ;;
+    apply)
+      mkdir -p "$(dirname "$destination")"
+      # Rendered into a variable first: render_for reads the live file, and a direct
+      # redirect would truncate it before it is read.
+      local rendered
+      rendered="$(render_for "$template" "$destination")"
+      printf '%s\n' "$rendered" > "$destination"
+      ;;
+  esac
 }
 
-echo "=== dotfiles install ==="
-echo "Dotfiles dir : $DOTFILES_DIR"
-echo "Homelab repo : $REPO_PATH"
-echo ""
+if [ "$MODE" != check ]; then
+  echo "=== dotfiles install ==="
+  echo "Dotfiles dir : $DOTFILES_DIR"
+  echo "Homelab repo : $REPO_PATH"
+  echo ""
+fi
 
 write_file "$DOTFILES_DIR/templates/gitconfig" "$HOME/.gitconfig"
 write_file "$DOTFILES_DIR/templates/claude-global-settings.json" "$HOME/.claude/settings.json"
@@ -72,7 +111,9 @@ while IFS= read -r -d '' skill_file; do
   write_file "$skill_file" "$HOME/.claude/skills/${skill_file#"$DOTFILES_DIR/templates/claude-skills/"}"
 done < <(find "$DOTFILES_DIR/templates/claude-skills" -type f -print0 | sort -z)
 
-if ! $DRY_RUN; then
+if [ "$MODE" = check ]; then
+  exit "$DRIFT"
+elif [ "$MODE" = apply ]; then
   echo ""
   echo "Validating output..."
   python3 -m json.tool "$HOME/.claude/settings.json" > /dev/null \
