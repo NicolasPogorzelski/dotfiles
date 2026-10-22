@@ -10,8 +10,11 @@ to reproduce the setup on any machine.
 - `~/.claude/CLAUDE.md` - global working rules for Claude Code. It imports a profile from a private
   repository (`@~/git/career-plan/claude-profil.md`), so nothing personal is kept here; on a
   machine without that repository the import is simply absent
-- `~/.claude/hooks/publish-guard.sh` - the global publish guard the settings call: no push, PR or
-  release by Claude; single exception `git -C ~/git/overthewire-bandit push`
+- `~/.claude/hooks/publish-guard.sh` - the global publish guard the settings call: Claude may
+  push a namespaced feature branch (`feat/`, `fix/`, `docs/`, `chore/`, `refactor/`, `test/`,
+  `ci/`) to origin, and `git -C ~/git/overthewire-bandit push`; every other push (main, bare,
+  force, delete, refspecs, tags) and every pull request or release action is refused. The
+  `main-protection` ruleset on GitHub is the second layer
 - `~/.claude/skills/rolle/` - the `/rolle` command: starts one or more roles (`tutor`, `reviewer`,
   `devsecops`, `pruefer`) that Claude acts from for the rest of the session, see [Roles](#roles)
 - `~/git/homelab-server-architecture/.claude/settings.local.json` - project-local permissions
