@@ -37,7 +37,7 @@ dotfiles/
 │       │   ├── restore.sh              # install the reminder + enable its timer
 │       │   ├── sync-from-live.sh       # copy the live files back in / --check for drift
 │       │   ├── files.list              # files under $HOME; read by both scripts above
-│       │   ├── backup-watch.sh         # sync-all.sh --check + uncommitted/unpushed -> notification
+│       │   ├── backup-watch.sh         # sync-all.sh + install.sh --check, uncommitted/unpushed -> notification
 │       │   ├── backup-watch.service    # user unit running it once
 │       │   └── backup-watch.timer      # daily, catches up after downtime
 │       ├── displays/
@@ -132,21 +132,34 @@ cd ~/git/dotfiles
 ./validate.sh          # verify templates are intact
 ./install.sh --dry-run # diff each template against the live file it would replace
 ./install.sh           # apply
+./install.sh --check   # one DRIFTED line per live file that left its template, exit 1 if any
 ```
 
 Read the dry-run before applying. Anything the live file has and the template lacks is
 either a change to port back into the template or a reason not to run the installer;
-running it regardless downgrades the machine to the template. The comparison leaves out
-the project file's `permissions.allow` list, which Claude Code appends to per machine and
-which is not template material.
+running it regardless downgrades the machine to the template.
+
+**Changing a setting:** in the template, not live. Commit, merge, then on every machine
+`git pull` and `./install.sh`. A change made live - through `/hooks`, a permission prompt's
+settings or by hand - is reported by `backup-watch` the next day and is either ported back into
+the template or undone by the next install.
+
+**A new machine:** clone, `./bootstrap.sh`, then the per-machine part below, then
+`./install.sh`.
 
 ## What the templates deliberately do not carry
 
-- Credential helpers in `~/.gitconfig`. The `gh auth git-credential` entry names a path
-  that exists on one machine; each workstation adds its own after install.
-- The allow list in `settings.local.json`, for the reason above.
-- The SSH signing key and `~/.ssh/allowed_signers`. `~/.gitconfig` names both and signs every
-  commit and tag, so on a machine without them each commit fails until they are in place.
+Per machine, set up once after cloning:
+
+- Credential helpers. The `gh auth git-credential` entry names a path that exists on one
+  machine, so it goes into `~/.gitconfig.local`, which the template includes last:
+  `gh auth login`, then `GIT_CONFIG_GLOBAL=~/.gitconfig.local gh auth setup-git`.
+- The SSH signing key and `~/.ssh/allowed_signers`, one key per machine, registered on GitHub
+  as a signing key. `~/.gitconfig` names both and signs every commit and tag, so on a machine
+  without them each commit fails until they are in place.
+- The `permissions.allow` entries of both settings files. Claude Code appends to them per
+  machine; `install.sh` keeps them next to the template's own entries, and the drift check
+  compares the lists sorted.
 
 ## Paths on rpm-ostree systems
 
@@ -176,8 +189,9 @@ and running the script again is safe. `restore-all.sh sunshine partydeck` restor
 
 **Keep the backup current:** `scripts/workstation/sync-all.sh --check` lists what drifted in any
 module; without `--check` it copies the live state in. Review with `git diff`, commit, push.
-`backup-watch` runs that check every day and raises a desktop notification when something
-drifted, is not committed or not pushed - so the only routine left is reacting to it.
+`backup-watch` runs that check and `install.sh --check` every day and raises a desktop
+notification when a module or a configuration file drifted, or work is not committed or not
+pushed - so the only routine left is reacting to it.
 
 **The contract** - what makes a directory a module. `restore-all.sh` and `sync-all.sh` find
 modules by it, so a new one needs no change anywhere else; `validate.sh` check 6 enforces it.
