@@ -12,7 +12,11 @@ to reproduce the setup on any machine.
   machine without that repository the import is simply absent
 - `~/.claude/hooks/publish-guard.sh` - the global publish guard the settings call: no push, PR or
   release by Claude; single exception `git -C ~/git/overthewire-bandit push`
-- `~/git/homelab-server-architecture/.claude/settings.local.json` - project-local Claude Code hooks
+- `~/.claude/skills/rolle/` - the `/rolle` command: starts one or more roles (`tutor`, `reviewer`,
+  `devsecops`, `pruefer`) that Claude acts from for the rest of the session, see [Roles](#roles)
+- `~/git/homelab-server-architecture/.claude/settings.local.json` - project-local permissions
+  (the publishing deny list). The project's hooks are tracked in that repository's own
+  `.claude/settings.json` and are not managed here
 - The Bazzite gaming PC's own setup, one module per topic under `scripts/workstation/` (Sunshine,
   displays, shortcuts, PartyDeck, Craft apps, backup reminder): `restore-all.sh` rebuilds it,
   `sync-all.sh` backs it up - see [Workstation modules](#workstation-modules)
@@ -86,8 +90,39 @@ dotfiles/
     ├── claude-global-CLAUDE.md         # ~/.claude/CLAUDE.md
     ├── claude-hooks/
     │   └── publish-guard.sh            # ~/.claude/hooks/publish-guard.sh
+    ├── claude-skills/                  # ~/.claude/skills/, same relative paths
+    │   └── rolle/
+    │       ├── SKILL.md                # /rolle [name ...] | aus
+    │       └── rollen/                 # one file per role
     └── homelab-settings.local.json     # ~/git/homelab-server-architecture/.claude/settings.local.json
 ```
+
+## Roles
+
+Specialised behaviour is started on purpose, per session, and ends with it:
+
+```
+/rolle                      # list the roles
+/rolle tutor                # one role
+/rolle reviewer devsecops   # several; where they conflict, the stricter restriction wins
+/rolle aus                  # back to normal
+```
+
+| Role | Acts as | Never |
+|---|---|---|
+| `tutor` | hints in steps, pointers to `man`/`--help`, review of my own attempt | writes commands or code, runs anything |
+| `reviewer` | critical review of designs and ADRs | writes or edits documents, decides |
+| `devsecops` | review from four seats (IT security, OT security, DevSecOps, DevOps), measured | changes anything without approval per ID |
+| `pruefer` | oral exam or technical interview, one question at a time, honest grading | gives hints before the answer |
+
+A role overrides the behavioural defaults in CLAUDE.md for that session; publishing rules,
+commit rules and the hooks stay in force. Adding a role is one file in `rollen/`.
+
+Until 2026-10-22, learning mode and the review from four seats were standing rules in the global
+CLAUDE.md, and two hooks (an explain-every-flag reminder after each tool call, a 15-minute rule on
+each prompt) enforced the first. They applied to every session, learning or not. The hooks are
+gone; the rules live in `tutor` and `devsecops`, and the global CLAUDE.md keeps only a one-line
+duty to name a risk noticed in passing.
 
 ## Usage
 

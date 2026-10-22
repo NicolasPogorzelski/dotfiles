@@ -66,6 +66,12 @@ write_file "$DOTFILES_DIR/templates/claude-global-CLAUDE.md" "$HOME/.claude/CLAU
 write_file "$DOTFILES_DIR/templates/claude-hooks/publish-guard.sh" "$HOME/.claude/hooks/publish-guard.sh"
 write_file "$DOTFILES_DIR/templates/homelab-settings.local.json" "$REPO_PATH/.claude/settings.local.json"
 
+# Skills: every file under templates/claude-skills/ lands at the same relative
+# path under ~/.claude/skills/, so a new role is one new file and no edit here.
+while IFS= read -r -d '' skill_file; do
+  write_file "$skill_file" "$HOME/.claude/skills/${skill_file#"$DOTFILES_DIR/templates/claude-skills/"}"
+done < <(find "$DOTFILES_DIR/templates/claude-skills" -type f -print0 | sort -z)
+
 if ! $DRY_RUN; then
   echo ""
   echo "Validating output..."
