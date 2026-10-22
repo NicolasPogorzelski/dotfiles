@@ -1,7 +1,7 @@
 {
   "agentPushNotifEnabled": true,
   "autoCompactEnabled": true,
-  "autoMemoryEnabled": false,
+  "autoMemoryEnabled": true,
   "hooks": {
     "PreToolUse": [
       {
@@ -48,5 +48,39 @@
   },
   "theme": "dark",
   "tui": "fullscreen",
-  "includeCoAuthoredBy": false
+  "includeCoAuthoredBy": false,
+  "autoMode": {
+    "environment": [
+      "### Org-wide",
+      "**Organization**: None configured",
+      "**Cloud provider(s)**: None configured",
+      "**Repository visibility**: PUBLIC — github.com/NicolasPogorzelski/homelab-server-architecture (confirmed via gh)",
+      "**Internal sharing / snippet hosting**: None configured — treat public paste/gist services as outside the trust boundary",
+      "**Secrets management**: None configured — repo docs reference Ansible Vault and Vaultwarden for this platform but this is unverified provenance from repo-file content alone",
+      "**Default / protected branches**: Default branch `main`; ruleset `main-protection` active on `main` (via gh, authoritative)",
+      "**CI/CD deploy targets**: None configured",
+      "**Network posture**: None configured",
+      "**Source control**: The trusted repo (github.com:NicolasPogorzelski/homelab-server-architecture.git) and its remote only — no additional orgs configured",
+      "**Trusted internal domains**: None configured",
+      "**Trusted cloud buckets**: None configured",
+      "**Key internal services**: None configured",
+      "**Internal package registry**: None configured",
+      "**Sensitive data locations & audiences**: any file or store holding personal data, confidential business data, credentials, regulated data, or similarly sensitive material; preserve exact handles when known and share only with audiences cleared at the [named+specifics] bar. This repo's own .gitignore flags .env / .env.* / *.key / **/rsa_key.pem and similar patterns as sensitive, and docs/platform/data-classification.md exists as a named classification doc",
+      "**Data retention / declassification**: None configured",
+      "**Sensitive remote targets**: any namespace, host, or container whose name carries `prod` or `production` as a whole word or name segment (hyphen/underscore/dot-delimited)",
+      "**Protected deployment namespaces / environments**: None configured — fall back to the Sensitive remote targets heuristic",
+      "**Protected IaC scopes**: IAM, RBAC, networking, quota, and node-pool resources; anything whose name or tag carries `prod` or `production` as a whole word or name segment",
+      "### User-specific",
+      "**Primary use of Claude Code**: software development — DevOps/homelab platform-engineering learning project (Ansible/Terraform/Kubernetes track) in this repo",
+      "**Trusted repo**: The git repository at <home>/git/homelab-server-architecture (remote github.com:NicolasPogorzelski/homelab-server-architecture.git) — this repo is PUBLIC, so only this repo's own work belongs there; content ported or first read from outside this session's repo is not its own work. Secrets and sensitive data are never cleared into it by visibility alone",
+      "**Org-specific CLIs**: None configured — repo docs mention `tailscale`, `ansible-lint`, `smbclient`, `pct`, `snapraid` as platform tooling but usage counts here are low/no corroboration for auto-trust",
+      "routine under NicolasPogorzelski/ prefix on github.com is the scope of the trusted repo above; no broader org prefix is evidenced"
+    ]
+  },
+  "feedbackDrafts": "off",
+  "modelSettings": {
+    "claude-sonnet-5": {
+      "effortLevel": "high"
+    }
+  }
 }

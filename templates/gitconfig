@@ -26,3 +26,8 @@
 
 [tag]
 	gpgsign = true
+
+# Last, so it can override: what holds on this machine only, such as the credential
+# helpers `gh auth setup-git` writes, with their install path. Absent is fine.
+[include]
+	path = ~/.gitconfig.local
