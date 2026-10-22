@@ -1,41 +1,4 @@
 {
-  "hooks": {
-    "PreToolUse": [
-      {
-        "hooks": [
-          {
-            "command": "<repo-path>/scripts/hooks/pre-commit-guard.sh",
-            "statusMessage": "Validating repository before commit",
-            "timeout": 120,
-            "type": "command"
-          }
-        ],
-        "matcher": "Bash"
-      }
-    ],
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "command": "python3 -c \"import subprocess,json; log=subprocess.check_output(['git','log','--oneline','-5'],cwd='<repo-path>').decode().strip(); branch=subprocess.check_output(['git','branch','--show-current'],cwd='<repo-path>').decode().strip(); print(json.dumps({'hookSpecificOutput':{'hookEventName':'SessionStart','additionalContext':'Branch: '+branch+chr(10)+'Recent commits:'+chr(10)+log}}))\"",
-            "statusMessage": "Loading repository state...",
-            "type": "command"
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "command": "printf '{\"systemMessage\": \"Per CLAUDE.md: before this session ends, record what was learned in devops-til (new concepts as new .md files, README index updated), then push it.\"}'",
-            "statusMessage": "devops-til reminder",
-            "type": "command"
-          }
-        ]
-      }
-    ]
-  },
   "permissions": {
     "allow": [
       "Bash(./scripts/validate-repo.sh *)"
