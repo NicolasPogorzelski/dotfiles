@@ -17,6 +17,8 @@ to reproduce the setup on any machine.
   `main-protection` ruleset on GitHub is the second layer
 - `~/.claude/skills/rolle/` - the `/rolle` command: starts one or more roles (`tutor`, `reviewer`,
   `devsecops`, `pruefer`) that Claude acts from for the rest of the session, see [Roles](#roles)
+- `~/.claude/skills/rea/` - the `/rea` command: starts reverse engineering with REA for the
+  session; without it Claude leaves REA's tools alone, see [REA](#rea)
 - `~/git/homelab-server-architecture/.claude/settings.local.json` - project-local permissions
   (the publishing deny list). The project's hooks are tracked in that repository's own
   `.claude/settings.json` and are not managed here
@@ -94,6 +96,8 @@ dotfiles/
     ├── claude-hooks/
     │   └── publish-guard.sh            # ~/.claude/hooks/publish-guard.sh
     ├── claude-skills/                  # ~/.claude/skills/, same relative paths
+    │   ├── rea/
+    │   │   └── SKILL.md                # /rea [target and question]
     │   └── rolle/
     │       ├── SKILL.md                # /rolle [name ...] | aus
     │       └── rollen/                 # one file per role
@@ -126,6 +130,49 @@ CLAUDE.md, and two hooks (an explain-every-flag reminder after each tool call, a
 each prompt) enforced the first. They applied to every session, learning or not. The hooks are
 gone; the rules live in `tutor` and `devsecops`, and the global CLAUDE.md keeps only a one-line
 duty to name a risk noticed in passing.
+
+## REA
+
+[REA](https://github.com/morluto/rea) (npm `rea-agents`) is an MCP server for reverse
+engineering shipped applications. It is a tool, not learning material: it is registered for
+every session but used only after `/rea`, and the settings template puts `mcp__rea` on the ask
+list, so every call needs my approval. REA's own skill is not installed under `~/.claude/skills`,
+where it would trigger by itself; `/rea` reads a pinned copy instead.
+
+Targets and output live in `~/rea/<project>/`, never in a repository. `~/rea` is a local git
+repository without a remote whose `.gitignore` admits only `ERGEBNIS.md` and `NOTIZEN.md` per
+project, so no third-party code reaches any history.
+
+The registration, the engines and the pinned skill are per machine (verified on the Fedora
+notebook, 2026-10-24; on Bazzite the dnf line needs another route):
+
+```bash
+# Node: Fedora's 22.23.1 and 24.18.0 are below REA's minimum (22.23.4 / 24.22.1)
+# nodejs.org tarball, checked against SHASUMS256.txt
+~/.local/opt/node-v24.22.1-linux-x64/
+# Engines, each checked against its published SHA-256
+~/.local/opt/ghidra_12.1.4_PUBLIC/                       # REA accepts Ghidra 12.1.x only
+~/.local/opt/jadx-headless-mcp/jadx-headless-mcp-0.7.1-all.jar
+~/.local/opt/apktool/apktool                             # wrapper around apktool_3.0.3.jar
+sudo dnf install java-25-openjdk-devel android-tools wireshark-cli binwalk rizin
+# REA's skill, copied from the npm package of the pinned version
+~/.local/share/rea/skill-6.7.0/
+
+N=~/.local/opt/node-v24.22.1-linux-x64/bin
+claude mcp add --scope user rea \
+  --env PATH=$N:/usr/local/bin:/usr/bin:/bin \
+  --env JAVA_HOME=/usr/lib/jvm/java-25-openjdk \
+  --env GHIDRA_INSTALL_DIR=$HOME/.local/opt/ghidra_12.1.4_PUBLIC \
+  --env REA_JADX_MCP_JAR=$HOME/.local/opt/jadx-headless-mcp/jadx-headless-mcp-0.7.1-all.jar \
+  --env REA_APKTOOL_COMMAND=$HOME/.local/opt/apktool/apktool \
+  -- $N/npx -y rea-agents@6.7.0 mcp
+claude mcp list        # rea: ... ✔ Connected
+```
+
+The absolute `npx` and the `PATH` entry keep REA on its own Node; `rea setup` would write a bare
+`npx` that resolves to the system's. For that reason `rea doctor` reports the registration as
+`config_drift` and the skill as missing; both are intended. An update means a new version in
+all three places: the registration, the skill copy and the path in `rea/SKILL.md`.
 
 ## Usage
 

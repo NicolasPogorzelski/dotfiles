@@ -42,7 +42,8 @@
       "Bash(gh pr create *)",
       "Bash(gh pr merge *)",
       "Bash(gh repo sync *)",
-      "Bash(gh api *)"
+      "Bash(gh api *)",
+      "mcp__rea"
     ]
   },
   "theme": "dark",
